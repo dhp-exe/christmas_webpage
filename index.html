@@ -299,8 +299,15 @@ Anh thương Hải Vân nhất trên đời.
                 const phi = Math.acos(2 * v - 1); const lam = 2 * Math.PI * u;
                 let radMult = (type === 'green') ? 1.0 : 1.2; 
                 if (type === 'gift') radMult = 1.5; 
-                const rad = CONFIG.explodeRadius * Math.cbrt(Math.random()) * radMult;
-                pExplodeTargets.push(rad * Math.sin(phi) * Math.cos(lam), rad * Math.sin(phi) * Math.sin(lam), rad * Math.cos(phi));
+                const minRadius = 35; 
+                const spread = 40; // How far out they go
+                const rad = (minRadius + Math.random() * spread) * radMult;
+
+                pExplodeTargets.push(
+                    rad * Math.sin(phi) * Math.cos(lam), 
+                    rad * Math.sin(phi) * Math.sin(lam), 
+                    rad * Math.cos(phi)
+                );
 
                 const tHeart = Math.random() * Math.PI * 2;
                 let hx = 16 * Math.pow(Math.sin(tHeart), 3);
