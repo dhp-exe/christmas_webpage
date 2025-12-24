@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Merry Christmas</title>
+    <title>Merry Christmas to Naviah!</title>
     
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
@@ -26,7 +28,7 @@
             text-shadow: 0 2px 4px black;
         }
 
-        button {
+        #btnStart {
             pointer-events: auto; cursor: pointer;
             background: linear-gradient(to bottom, #D32F2F, #8B0000); 
             color: #FFF; border: 2px solid #FFD700;
@@ -37,16 +39,73 @@
         }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-        /* Camera Preview - Forced Flip for True View */
+        /* --- NOTE BUTTON --- */
+        #btnNote {
+            position: absolute; bottom: 20px; left: 20px;
+            pointer-events: auto; cursor: pointer;
+            background: #fff; color: #D32F2F; 
+            border: 2px solid #D32F2F;
+            padding: 10px 20px; border-radius: 15px; 
+            font-weight: bold; font-family: 'Patrick Hand', cursive; font-size: 18px;
+            z-index: 200;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+        #btnNote:hover { transform: scale(1.1) rotate(-5deg); }
+
+        /* --- NOTE OVERLAY (The Panel) --- */
+        #note-overlay {
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); z-index: 300;
+            backdrop-filter: blur(5px);
+            align-items: center; justify-content: center;
+        }
+
+        /* --- THE PAPER --- */
+        #note-paper {
+            width: 320px; min-height: 400px;
+            background: #fffdf0; 
+            padding: 40px 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-radius: 4px;
+            position: relative;
+            transform: rotate(-1deg);
+            /* Notebook lines */
+            background-image: repeating-linear-gradient(transparent, transparent 29px, #afafaf 30px);
+            background-attachment: local;
+        }
+        
+        /* Tape effect */
+        #note-paper::before {
+            content: ''; position: absolute; top: -15px; left: 50%; 
+            width: 120px; height: 35px; background: rgba(255,255,255,0.3);
+            border: 1px solid rgba(255,255,255,0.2); 
+            transform: translateX(-50%) rotate(2deg);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* The Message Text */
+        #note-content {
+            font-family: 'Patrick Hand', cursive; 
+            font-size: 24px; color: #2c3e50; 
+            line-height: 35px; white-space: pre-wrap; /* Keeps your formatting */
+            text-align: justify;
+        }
+
+        #btn-close-note {
+            position: absolute; top: 5px; right: 10px;
+            background: transparent; border: none; 
+            font-size: 24px; cursor: pointer; color: #aaa;
+            font-family: sans-serif;
+        }
+        #btn-close-note:hover { color: #f00; }
+
         #camera-preview {
             position: absolute; top: 15px; right: 15px;
-            width: 240px; 
-            height: auto; 
+            width: 240px; height: auto; 
             border: 2px solid rgba(255,0,0,0.5); 
-            transform: scaleX(-1); /* Fixes mirroring */
-            opacity: 0.8; border-radius: 8px;
-            z-index: 200;
-            background: #111;
+            transform: scaleX(-1); opacity: 0.8; border-radius: 8px;
+            z-index: 200; background: #111;
         }
         
         #copyright {
@@ -73,12 +132,38 @@
         <button id="btnStart" onclick="startSystem()">ẤN VÔ ĐÂY NÈ</button>
     </div>
 
+    <button id="btnNote" onclick="toggleNote(true)">🎅 Santa's Note</button>
+
+    <div id="note-overlay" onclick="toggleNote(false)">
+        <div id="note-paper" onclick="event.stopPropagation()">
+            <button id="btn-close-note" onclick="toggleNote(false)">✖</button>
+            
+            <div id="note-content">
+Chúc bé Hải Vân giáng sinh vui vẻ nhoo! Anh iu bé nhìu lắm íiii
+Ngày này năm ngoái là mình đi mê trô xún làng đh rùi đi ăn ún đi lòng vòng nè bé nhớ hemm. Hôm ấy là ngày đầu tiên bé khoác tay anh đi lòng vòng giữa phố nữa hâhhaha
+Mình i mê trô xong mình còn ghé phố đi bộ coi chillies free nữa :))))
+Sau ngày hôm đó là tui bic iu con mẹ nó lun òyy
+Anh thương Hải Vân nhất trên đời.
+
+                                    Love u,
+                                dhp - ck hải vân
+            </div>
+            </div>
+    </div>
+
+    <div id="copyright">© by vandiep</div>
     <div id="canvas-container"></div>
     
     <video class="input_video" playsinline style="position:absolute; top:0; left:0; width:1px; height:1px; opacity:0; pointer-events:none;"></video>
     <canvas id="camera-preview"></canvas>
 
     <script>
+        // Toggle Note Visibility
+        function toggleNote(show) {
+            const panel = document.getElementById('note-overlay');
+            panel.style.display = show ? 'flex' : 'none';
+        }
+
         function showError(msg) {
             const el = document.getElementById('debug-log');
             el.style.display = 'block'; el.innerHTML += "⚠️ " + msg + "<br/>"; console.error(msg);
@@ -125,12 +210,11 @@
                 ctx.fillStyle = grd; ctx.fillRect(0,0,128,128);
 
             } else if (type === 'gift_box') {
-                // --- GIFT TEXTURE (Red Box with Gold Ribbon) ---
-                ctx.fillStyle = '#D32F2F'; ctx.fillRect(20, 20, 88, 88); // Red Base
-                ctx.fillStyle = '#FFD700'; ctx.fillRect(54, 20, 20, 88); // Vertical Ribbon
-                ctx.fillRect(20, 54, 88, 20); // Horizontal Ribbon
+                ctx.fillStyle = '#D32F2F'; ctx.fillRect(20, 20, 88, 88); 
+                ctx.fillStyle = '#FFD700'; ctx.fillRect(54, 20, 20, 88); 
+                ctx.fillRect(20, 54, 88, 20); 
                 ctx.strokeStyle = "rgba(0,0,0,0.5)"; ctx.lineWidth=4; 
-                ctx.strokeRect(20,20,88,88); // Border
+                ctx.strokeRect(20,20,88,88); 
             }
             
             return new THREE.CanvasTexture(canvas);
@@ -140,14 +224,14 @@
             green: createCustomTexture('green_leaf'),
             red: createCustomTexture('red_light'),
             yellow: createCustomTexture('yellow_light'),
-            gift: createCustomTexture('gift_box') // Added gift texture
+            gift: createCustomTexture('gift_box') 
         };
 
         const CONFIG = {
             greenCount: 2200, 
             redCount: 200,    
             yellowCount: 200, 
-            giftCount: 50,    // Number of gifts
+            giftCount: 50,    
             explodeRadius: 65, photoOrbitRadius: 25, treeHeight: 70, treeBaseRadius: 35
         };
 
@@ -175,7 +259,7 @@
             groupGreen = createParticleSystem('green', CONFIG.greenCount, 2.5);
             groupRed = createParticleSystem('red', CONFIG.redCount, 4.0); 
             groupYellow = createParticleSystem('yellow', CONFIG.yellowCount, 4.0); 
-            groupGift = createParticleSystem('gift', CONFIG.giftCount, 4.5); // Create Gifts
+            groupGift = createParticleSystem('gift', CONFIG.giftCount, 4.5); 
 
             createPhotos();
             createDecorations();
@@ -191,22 +275,15 @@
             const phases = []; 
             
             for(let i=0; i<count; i++) {
-                // --- TREE LOGIC ---
                 let tx, ty, tz;
-                
                 if (type === 'gift') {
-                    // Gifts sit at the BOTTOM of the tree
-                    // Height range: -35 (bottom) to -25 (slightly up)
-                    const h = (Math.random() * 10); // 0 to 10
-                    ty = -CONFIG.treeHeight/2 + h;  // Bottom area
-                    
-                    // Scatter around the base radius
+                    const h = (Math.random() * 10); 
+                    ty = -CONFIG.treeHeight/2 + h;  
                     const r = (CONFIG.treeBaseRadius * 0.5) + (Math.random() * CONFIG.treeBaseRadius * 0.8);
                     const theta = Math.random() * Math.PI * 2;
                     tx = r * Math.cos(theta);
                     tz = r * Math.sin(theta);
                 } else {
-                    // Standard Tree Logic for leaves/lights
                     const h = Math.random() * CONFIG.treeHeight; 
                     ty = h - CONFIG.treeHeight / 2;
                     let radiusRatio = (type === 'green') ? Math.sqrt(Math.random()) : 0.9 + Math.random()*0.1;
@@ -218,15 +295,13 @@
                 }
                 pTreeTargets.push(tx, ty, tz);
 
-                // --- EXPLODE LOGIC ---
                 const u = Math.random(); const v = Math.random();
                 const phi = Math.acos(2 * v - 1); const lam = 2 * Math.PI * u;
                 let radMult = (type === 'green') ? 1.0 : 1.2; 
-                if (type === 'gift') radMult = 1.5; // Gifts fly furthest
+                if (type === 'gift') radMult = 1.5; 
                 const rad = CONFIG.explodeRadius * Math.cbrt(Math.random()) * radMult;
                 pExplodeTargets.push(rad * Math.sin(phi) * Math.cos(lam), rad * Math.sin(phi) * Math.sin(lam), rad * Math.cos(phi));
 
-                // --- HEART LOGIC ---
                 const tHeart = Math.random() * Math.PI * 2;
                 let hx = 16 * Math.pow(Math.sin(tHeart), 3);
                 let hy = 13 * Math.cos(tHeart) - 5 * Math.cos(2*tHeart) - 2 * Math.cos(3*tHeart) - Math.cos(4*tHeart);
@@ -246,14 +321,13 @@
             geo.setAttribute('position', new THREE.Float32BufferAttribute(pPositions, 3));
             geo.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
             
-            // --- Color Definitions ---
             const colors = new Float32Array(count * 3);
             const baseColor = new THREE.Color();
             
             if(type === 'green') baseColor.setHex(0x006400);      
             else if(type === 'red') baseColor.setHex(0xFF0000);   
             else if(type === 'yellow') baseColor.setHex(0xFFD700);
-            else if(type === 'gift') baseColor.setHex(0xFFFFFF); // White base, texture provides color
+            else if(type === 'gift') baseColor.setHex(0xFFFFFF); 
 
             for(let i=0; i<count; i++) {
                 colors[i*3] = baseColor.r; colors[i*3+1] = baseColor.g; colors[i*3+2] = baseColor.b;
@@ -264,7 +338,6 @@
             const mat = new THREE.PointsMaterial({
                 size: size, map: textures[type], transparent: true, opacity: 1.0,
                 vertexColors: true, 
-                // Use NormalBlending for gifts so they look solid, Additive for lights
                 blending: (type === 'gift') ? THREE.NormalBlending : THREE.AdditiveBlending, 
                 depthWrite: false, sizeAttenuation: true
             });
@@ -343,13 +416,10 @@
                     sizes[i] = baseSize;
                     let brightness = 1.0;
                     if (type === 'gift') {
-                        // Gifts are steady, no flicker
                         brightness = 1.0;
                     } else if(type === 'green') {
-                        // Green shimmers slightly
                         brightness = 0.85 + 0.25 * Math.sin(time * 8 + phases[i]);
                     } else {
-                        // Lights (Red/Yellow) twinkle
                         brightness = 0.5 + 0.5 * Math.sin(time * 8 + phases[i]);
                     }
                     colors[i*3] = baseColor.r * brightness; colors[i*3+1] = baseColor.g * brightness; colors[i*3+2] = baseColor.b * brightness;
@@ -379,8 +449,7 @@
             const time = Date.now() * 0.001;
             const speed = 0.08;
             
-            // High Sensitivity preserved
-            const handRotY = (handX - 0.5) * 10.0;
+            const handRotY = (handX - 0.5) * 12.0;
 
             updateParticleGroup(groupGreen, 'green', state, speed, handRotY, time);
             updateParticleGroup(groupRed, 'red', state, speed, handRotY, time);
@@ -431,7 +500,6 @@
                 photoMeshes.forEach((mesh, i) => {
                     if (i === selectedIndex) {
                         mesh.position.lerp(new THREE.Vector3(0, 0, 60), 0.1);
-                        // Big Zoom Preserved
                         mesh.scale.lerp(new THREE.Vector3(6, 6, 6), 0.1);
                         mesh.lookAt(camera.position); mesh.rotation.z = 0;
                     } else {
@@ -469,7 +537,6 @@
 
                     ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
 
-                    // LOGIC
                     if (results.multiHandLandmarks.length === 2) {
                         const h1 = results.multiHandLandmarks[0]; const h2 = results.multiHandLandmarks[1];
                         const distIndex = Math.hypot(h1[8].x - h2[8].x, h1[8].y - h2[8].y);
